@@ -1,0 +1,20 @@
+roslaunch zed_wrapper zed2.launch
+roslaunch husky_navigation teb_move_base_mapless_demo.launch 
+rosrun teb_local_planner_tutorials cmd_vel_to_ackermann_drive.py 
+
+
+sudo chmod 777 /dev/ttyACM0
+rosrun rosserial_python serial_node.py /dev/ttyACM0
+
+
+
+
+
+####    misc    ####
+rosdep install --from-paths src --ignore-src -r -y
+
+#### rosnodelet laserscan
+roslaunch zed_nodelet_example zed_laserscan_nodelet.launch camera_model:=zed2
+
+####    ouster  ####
+roslaunch ouster_ros ouster.launch sensor_hostname:=<sensor hostname> metadata:=<path to metadata json>
