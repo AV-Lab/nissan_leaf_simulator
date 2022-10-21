@@ -1,16 +1,10 @@
-#include <util/atomic.h> // For the ATOMIC_BLOCK macro
+//Sabtertooth motor controller imports
 #include <SoftwareSerial.h>
 #include <SabertoothSimplified.h>
-
-#define ENCA 2 // YELLOW
-#define ENCB 3 // WHITE
-#define PWM 5
-#define IN2 6
-#define IN1 7
-
-float target = 0;
-SoftwareSerial SWSerial(NOT_A_PIN, 11); // RX on no pin (unused), TX on pin 11 (to S1).
-SabertoothSimplified ST(SWSerial); // Use SWSerial as the serial port.
+#include <ros.h>
+#include <std_msgs/Float64.h>
+//target in degrees, calculated from ros topic "steering_angle"
+float target = 0.0;
 
 const int encoderPinA = 2;
 const int encoderPinB = 3;
@@ -20,94 +14,76 @@ const int PPR = 1000;
 
 //The value is '1' if the encoder is not attached to any motor
 const int gearRatio = 24;
-const float decodeNumber = 10;
+const int decodeNumber = 10;
 
 //record the current number of pulses received
 volatile long int currentPosition = 0;
 
 //rotation angle in degrees
-float rotationalAngle = 0.0;
-
-//ros imports
-#include <ros.h>
-#include <std_msgs/Float32.h>
+double rotationalAngle = 0.0;
 
 
-ros::NodeHandle nh;
-void messageCb(const std_msgs::Float32& msg) {
-  target = msg.data * 180 / 3.141;
-}
-ros::Subscriber<std_msgs::Float32> sub("steering_angle", &messageCb);
-
-
-volatile int posi = 0; // specify posi as volatile: https://www.arduino.cc/reference/en/language/variables/variable-scope-qualifiers/volatile/
 long prevT = 0;
 float eprev = 0;
 float eintegral = 0;
 
-void setup() {
+//ros subscriber code
+ros::NodeHandle nh;
+void messageCb(const std_msgs::Float64& msg)
+{
+  target = msg.data * 180 / 3.141;
+}
+ros::Subscriber<std_msgs::Float64> sub("steering_angle", &messageCb);
+SoftwareSerial SWSerial(NOT_A_PIN, 11); // RX on no pin (unused), TX on pin 11 (to S1).
+SabertoothSimplified ST(SWSerial); // Use SWSerial as the serial port.
 
-  // encoder code
+void setup() {
+  // put your setup code here, to run once:
   pinMode(encoderPinA, INPUT_PULLUP);
   pinMode(encoderPinB, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(2), doEncoderA, CHANGE);
   attachInterrupt(digitalPinToInterrupt(3), doEncoderB, CHANGE);
-  Serial.begin(9600);
-  //SWSerial.begin(9600);
-  ///////
+  Serial.begin(38400);
+  SWSerial.begin(9600);
 
-
-
-  // Serial.begin(9600);
-  pinMode(ENCA, INPUT);
-  pinMode(ENCB, INPUT);
-  //  attachInterrupt(digitalPinToInterrupt(ENCA),readEncoder,RISING);
-  attachInterrupt(digitalPinToInterrupt(ENCA), doEncoderA, RISING);
-
-
-  pinMode(PWM, OUTPUT);
-  pinMode(IN1, OUTPUT);
-  pinMode(IN2, OUTPUT);
-
-  Serial.println("target pos");
-  /////ros init
+  //ros init
   nh.initNode();
   nh.subscribe(sub);
+
+
 }
 
 void loop() {
-
-  // set target position
-  //int target = 1200;
-  // int target = 250*sin(prevT/1e6);
-  //ros init
+  // put your main code here, to run repeatedly:
   nh.spinOnce();
-  delay(2000);
-  // PID constants
-  float kp = 1;
-  float kd = 0.025;
-  float ki = 0.0;
+  rotationalAngle = 0.086*(360 * currentPosition) / (PPR * decodeNumber * gearRatio);
+  Serial.println(rotationalAngle);
+
+
+  String rotationalAngle_log_string = "rotation reading " + String(rotationalAngle);
+//  /const char *rotationalAngle_log_char = rotationalAngle_log_string.c_str();
+//  nh.loginfo(rotationalAngle_log_char);
+  String target_log_string = " | target " + String(target);
+//  /const char *target_log_char = target_log_string.c_str();
+  String logging = rotationalAngle_log_string + target_log_string;
+  const char *logging_char = logging.c_str();
+  nh.loginfo(logging_char);
+
+  // PID constants, need to tune
+  float kp = 10;
+  float kd = 0.02;
+  float ki = 0;
+// float kp = 0.02;
+//  float kd = 0.002;
+//  float ki = 0.1;
 
   // time difference
   long currT = micros();
   float deltaT = ((float) (currT - prevT)) / ( 1.0e6 );
   prevT = currT;
 
-  //encorder code
-  rotationalAngle = (360 * currentPosition) / (PPR * decodeNumber * gearRatio);
-  Serial.println(rotationalAngle);
-
-
-  // Read the position in an atomic block to avoid a potential
-  // misread if the interrupt coincides with this code running
-  // see: https://www.arduino.cc/reference/en/language/variables/variable-scope-qualifiers/volatile/
-  float pos = 0;
-  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-    pos = rotationalAngle;
-  }
-
   // error
-  float e = pos - target;
+  float e = rotationalAngle - target;
 
   // derivative
   float dedt = (e - eprev) / (deltaT);
@@ -120,8 +96,8 @@ void loop() {
 
   // motor power
   float pwr = fabs(u);
-  if ( pwr > 40 ) {
-    pwr = 40;
+  if ( pwr > 80 ) {
+    pwr = 80;
   }
 
   // motor direction
@@ -129,56 +105,28 @@ void loop() {
   if (u < 0) {
     dir = -1;
   }
+  if (u == 0) {
+    dir = 0;
+  }
 
   // signal the motor
-  setMotor(dir, pwr, PWM, IN1, IN2);
+  setMotor(dir, pwr);
 
 
   // store previous error
   eprev = e;
 
-  Serial.print(target);
-  Serial.print(" ");
-  Serial.print(pos);
-  Serial.println();
 }
-
-void setMotor(int dir, int pwmVal, int pwm, int in1, int in2) {
-  if (dir == 1) {
-
-    ST.motor(1, 40);  // Go forward cw
-
-  }
-  else if (dir == -1) {
-
-    ST.motor(1, -40);  // Go backwards acw
-
-  }
-  else {
-
-    ST.motor(1, 0);  // Hold current position
-  }
-}
-
-//void readEncoder(){
-//  int b = digitalRead(ENCB);
-//  if(b > 0){
-//    posi++;
-//  }
-//  else{
-//    posi--;
-//  }
-//}
 
 void doEncoderA()
 {
   if (digitalRead(encoderPinA) != digitalRead(encoderPinB))
   {
-    posi++;
+    currentPosition++;
   }
   else
   {
-    posi--;
+    currentPosition--;
   }
 }
 
@@ -186,11 +134,27 @@ void doEncoderB()
 {
   if (digitalRead(encoderPinA) == digitalRead(encoderPinB))
   {
-    posi++;
+    currentPosition++;
   }
   else
   {
-    posi--;
+    currentPosition--;
   }
 
+}
+void setMotor(int dir, int pwr) {
+  if (dir == 1) {
+
+    ST.motor(1, pwr);  // Go forward cw
+
+  }
+  else if (dir == -1) {
+
+    ST.motor(1, (-1*pwr));  // Go backwards acw
+
+  }
+  else {
+
+    ST.motor(1, 0);  // Hold current position
+  }
 }
