@@ -32,6 +32,7 @@ def cmd_callback(data):
   
   pub.publish(msg)
   pub2.publish(steering)
+  pub3.publish(v)
   
 
 
@@ -50,6 +51,8 @@ if __name__ == '__main__':
     rospy.Subscriber(twist_cmd_topic, Twist, cmd_callback, queue_size=1)
     pub = rospy.Publisher(ackermann_cmd_topic, AckermannDriveStamped, queue_size=1)
     pub2 = rospy.Publisher('steering_angle', Float32, queue_size=10)
+    pub3 = rospy.Publisher('velocity', Float32, queue_size=10)
+
     rospy.loginfo("Node 'cmd_vel_to_ackermann_drive' started.\nListening to %s, publishing to %s. Frame id: %s, wheelbase: %f", "/cmd_vel", ackermann_cmd_topic, frame_id, wheelbase)
     
     rospy.spin()
