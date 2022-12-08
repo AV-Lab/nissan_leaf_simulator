@@ -1,4 +1,4 @@
 # nissan_leaf
-Autonomy Packages
-====== How to run nissan simulation ======
+
+*** Run Nissan Leaf simulation **
 roslaunch catvehicle catvehicle_spawn.launch
