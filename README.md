@@ -15,9 +15,10 @@ sudo apt-get install ros-noetic-gazebo-ros-control
 ```
 rosdep install --from-paths src --ignore-src -r -y
 ```
-**Source the workspace**
+**Build & source the workspace**
 ```
 cd ~/catkin_ws
+catkin_make
 source devel/setup.bash
 ```
 ## Nissan leaf Simulation
