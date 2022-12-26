@@ -15,6 +15,10 @@ sudo apt-get install ros-noetic-gazebo-ros-control
 ```
 rosdep install --from-paths src --ignore-src -r -y
 ```
+**Clone the Ouster lidar repo under the same workspace**
+```
+git clone https://github.com/Gepetto/ouster-gazebo-simulation
+```
 **Build & source the workspace**
 ```
 cd ~/catkin_ws

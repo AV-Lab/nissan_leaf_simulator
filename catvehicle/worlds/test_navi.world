@@ -816,6 +816,26 @@
         <robotNamespace>/catvehicle</robotNamespace>
         <updateRate>20.0</updateRate>
       </plugin>
+  <plugin name="differential_drive_controller" filename="libgazebo_ros_diff_drive.so">
+      <robotNamespace>/catvehicle</robotNamespace>
+      <rosDebugLevel>Debug</rosDebugLevel>
+      <publishWheelTF>false</publishWheelTF>
+      <publishWheelJointState>true</publishWheelJointState>
+      <alwaysOn>true</alwaysOn>
+      <leftJoint>back_left_wheel_joint</leftJoint>
+      <rightJoint>back_right_wheel_joint</rightJoint>
+      <wheelSeparation>1.73</wheelSeparation>
+      <wheelDiameter>0.63053</wheelDiameter>
+      <wheelTorque>350</wheelTorque>
+      <wheelAcceleration>1.0</wheelAcceleration>
+      <commandTopic>cmd_vel</commandTopic>
+      <odometryTopic>odom</odometryTopic>
+      <odometryFrame>odom</odometryFrame>
+      <odometrySource>world</odometrySource>
+      <robotBaseFrame>base_link</robotBaseFrame>
+      <cmd_vel_timeout>0.20</cmd_vel_timeout>
+      <updateRate>10.0</updateRate>
+  </plugin>
       <pose>0 0 0.1 0 -0 0</pose>
     </model>
     <model name='Untitled'>
