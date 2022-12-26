@@ -11,13 +11,13 @@ sudo apt-get install ros-noetic-controller-manager
 sudo apt-get install ros-noetic-ros-control ros-noetic-ros-controllers
 sudo apt-get install ros-noetic-gazebo-ros-control
 ```
-**Install dependencies**
-```
-rosdep install --from-paths src --ignore-src -r -y
-```
 **Clone the Ouster lidar repo under the same workspace**
 ```
 git clone https://github.com/Gepetto/ouster-gazebo-simulation
+```
+**Install dependencies**
+```
+rosdep install --from-paths src --ignore-src -r -y
 ```
 **Build & source the workspace**
 ```
@@ -58,7 +58,7 @@ roslaunch catvehicle catvehicle_empty.launch
 ```
 3) Launch points cloud to scan file
 ```
-roslaunch catvehicle points_to_scam.launch
+roslaunch catvehicle points_to_scan.launch
 ```
 4) Run the gmapping launch file
 ```
