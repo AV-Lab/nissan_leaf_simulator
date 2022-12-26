@@ -104,4 +104,5 @@ Sensors are included separately, based on the arguments passed to the xacro incl
       <robotNamespace>/catvehicle</robotNamespace>
     </plugin>
   </gazebo>
+  
 </robot>
