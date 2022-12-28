@@ -22,7 +22,7 @@ sudo apt-get install libignition-rendering3
 ```
 **Clone the Ouster lidar repo under the same workspace**
 ```
-git clone https://github.com/Gepetto/ouster-gazebo-simulation
+git clone --recursive https://github.com/gepetto/ouster-gazebo-simulation.git
 ```
 **Install dependencies**
 ```
