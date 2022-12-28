@@ -18,6 +18,7 @@ sudo apt-get install ros-noetic-gmapping
 sudo apt-get install ros-noetic-amcl
 sudo apt-get install ros-noetic-velodyne-pointcloud
 sudo apt-get install ros-noetic-pointcloud-to-laserscan
+sudo apt-get install libignition-rendering3
 ```
 **Clone the Ouster lidar repo under the same workspace**
 ```
