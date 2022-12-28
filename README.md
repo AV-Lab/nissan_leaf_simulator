@@ -16,6 +16,7 @@ sudo apt-get install ros-noetic-global-planner
 sudo apt-get install ros-noetic-move-base
 sudo apt-get install ros-noetic-gmapping
 sudo apt-get install ros-noetic-amcl
+sudo apt-get install ros-noetic-velodyne-pointcloud
 ```
 **Clone the Ouster lidar repo under the same workspace**
 ```
